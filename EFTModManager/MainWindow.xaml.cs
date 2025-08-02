@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
-using Microsoft.Win32;
 using SharpCompress.Archives;
+using System.Windows.Forms;
+using MessageBox = System.Windows.MessageBox;
 
 namespace EFTModManager
 {
@@ -52,22 +53,15 @@ namespace EFTModManager
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new OpenFileDialog
+            var dialog = new FolderBrowserDialog
             {
-                CheckFileExists = false,
-                CheckPathExists = true,
-                FileName = "请选择文件夹",
-                Filter = "文件夹|*.none",
-                ValidateNames = false
+                ShowNewFolderButton = true,
+                SelectedPath = GamePathTextBox.Text
             };
 
-            if (dialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                var selectedPath = System.IO.Path.GetDirectoryName(dialog.FileName);
-                if (!string.IsNullOrEmpty(selectedPath))
-                {
-                    GamePathTextBox.Text = selectedPath;
-                }
+                GamePathTextBox.Text = dialog.SelectedPath;
             }
         }
 
@@ -79,7 +73,7 @@ namespace EFTModManager
                 Multiselect = true
             };
 
-            if (dialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 foreach (var filename in dialog.FileNames)
                 {
