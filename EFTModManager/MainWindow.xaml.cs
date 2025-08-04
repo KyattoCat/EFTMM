@@ -148,14 +148,29 @@ namespace EFTModManager
             {
                 foreach (var filename in dialog.FileNames)
                 {
-                    var modType = DetectModType(filename);
-                    ModItems.Add(new ModItem
+                    // 将mod压缩包拷贝到程序运行目录下的mods文件夹
+                    try
                     {
-                        Name = Path.GetFileNameWithoutExtension(filename),
-                        FilePath = filename,
-                        Type = modType,
-                        IsEnabled = false
-                    });
+                        if (!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mods")))
+                            Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mods"));
+                        var targetPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mods", Path.GetFileName(filename));
+                        if (File.Exists(targetPath))
+                            File.Delete(targetPath);
+                        File.Copy(filename, targetPath);
+
+                        var modType = DetectModType(targetPath);
+                        ModItems.Add(new ModItem
+                        {
+                            Name = Path.GetFileNameWithoutExtension(targetPath),
+                            FilePath = targetPath,
+                            Type = modType,
+                            IsEnabled = false
+                        });
+                    }
+                    catch
+                    {
+                        MessageBox.Show($"添加模组 {Path.GetFileNameWithoutExtension(filename)} 时出错", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
                 _configModified = true;
             }
@@ -208,7 +223,17 @@ namespace EFTModManager
             if (selectedItems.Count == 0) return;
             for (int i = selectedItems.Count - 1; i >= 0; i--)
             {
-                ModItems.Remove((ModItem)selectedItems[i]);
+                var item = (ModItem)selectedItems[i];
+                ModItems.Remove(item);
+
+                try
+                {
+                    File.Delete(item.FilePath);
+                }
+                catch
+                {
+                    // 忽略删除失败的文件
+                }
             }
             _configModified = true;
         }
